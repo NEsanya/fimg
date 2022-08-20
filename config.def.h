@@ -1,1 +1,1 @@
-static const char* editor = "nano";
+const char* editor = "nano";

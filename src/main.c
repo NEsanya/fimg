@@ -1,8 +1,10 @@
 #include <stdio.h>
 
-#include "../config.h"
+#include "window.h"
 
 int main() {
-    printf("Hello, %s!\n", editor);
+    init_window();
+
+    free_window();
     return 0;
 }
