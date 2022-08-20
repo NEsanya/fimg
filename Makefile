@@ -6,21 +6,20 @@ HDR = $(wildcard src/*.h)
 OBJ_DIR = obj
 OBJ = ${SRC:src/%.c=${OBJ_DIR}/%.o}
 
-all: options ${EXECUTABLE}
-
-${OBJ_DIR}:
-	@mkdir ${OBJ_DIR}
-	@echo Object directory "${OBJ_DIR}" created
+all: options ${OBJ_DIR}/ ${EXECUTABLE}
 
 config.h: config.def.h
 	@cp $< $@
 	@echo Default config copied to $@
 
-${OBJ_DIR}/%.o: src/%.c ${HDR} config.h ${OBJ_DIR}
+${OBJ_DIR}/%.o: src/%.c ${HDR} config.h
 	${CC} ${CFLAGS} -c $< -o $@
 
 ${EXECUTABLE}: ${OBJ}
 	${CC} ${LDFLAGS} $^ -o $@
+
+${OBJ_DIR}/:
+	@mkdir $@
 
 options:
 	@echo ------OPTIONS------
