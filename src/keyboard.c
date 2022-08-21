@@ -1,26 +1,59 @@
 #include "keyboard.h"
+#include "utils.h"
 
-#include <string.h>
+enum KEYS {
+    NULL_KEY = 0,
+    ESCAPE = 27
+};
 
-static void escape_command_layout() {
-    change_window_mode(NAVIGATION_MODE);
-}
+typedef struct Hotkey {
+    int key;
+    void (*action)();
+} Hotkey;
 
-static inline void set_layout(KeyboardLayout* layout, const KeyboardLayout* from, uint32_t size) {
-    if(layout != NULL) {
-        memcpy(layout, from, sizeof(KeyboardLayout) * size);
-    }
-}
+#define NULL_HOTKEY { .key=NULL_KEY, .action=NULL }
 
-void get_keyboard_layout(uint32_t* count, KeyboardLayout* layout) {
+const Hotkey navigaton_hotkeys[] = {
+    { .key=ESCAPE, .action=close_window },
+    NULL_HOTKEY
+};
+const Hotkey command_hotkeys[] = {
+    NULL_HOTKEY
+};
+
+static bool parse_hotkeys(int key) {
+    const Hotkey* hotkeys;
     switch(get_window_mode()) {
         case NAVIGATION_MODE:
-            *count = sizeof(navigation_layout) / sizeof(KeyboardLayout);
-            set_layout(layout, navigation_layout, *count);
+            hotkeys = navigaton_hotkeys;
             break;
         case COMMAND_MODE:
-            *count = sizeof(command_layout) / sizeof(KeyboardLayout);
-            set_layout(layout, command_layout, *count);
+            hotkeys = command_hotkeys;
             break;
+        default:
+            fatal_error("Hotkeys not found", -1);
     }
+
+    bool is_hotkey = false;
+    for(uint32_t i = 0; hotkeys[i].key != NULL_KEY; i++) {
+        if(key == hotkeys[i].key)  {
+            hotkeys[i].action();
+            is_hotkey = true;
+            break;
+        }
+    }
+
+    return is_hotkey;
+}
+
+void parse_key(int key) {
+    if(key == -1) {
+        return;
+    }
+
+    if(!parse_hotkeys(key)) {
+        printw("%d\n", key);
+    }
+
+    refresh();
 }
