@@ -6,7 +6,7 @@ HDR = $(wildcard src/*.h)
 OBJ_DIR = obj
 OBJ = ${SRC:src/%.c=${OBJ_DIR}/%.o}
 
-all: options ${OBJ_DIR}/ ${EXECUTABLE}
+all: ${OBJ_DIR}/ ${EXECUTABLE}
 
 config.h: config.def.h
 	@cp $< $@
@@ -21,6 +21,9 @@ ${EXECUTABLE}: ${OBJ}
 ${OBJ_DIR}/:
 	@mkdir $@
 
+dev: CFLAGS += -DDEBUG -g
+dev: options all
+
 options:
 	@echo ------OPTIONS------
 	@echo -e "VERSION    = ${VERSION}"
@@ -34,4 +37,4 @@ clean:
 	@rm -rf ${OBJ_DIR} fimg
 	@echo Cleaned!
 
-.PHONY: all options clean
+.PHONY: all dev options clean

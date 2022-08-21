@@ -13,9 +13,11 @@ typedef struct Window {
 static Window* window = NULL;
 
 inline static void check_window_initialised() {
-    if(window == NULL) {
-        fatal_error("Window is not initialised", -1);
-    }
+    #ifdef DEBUG
+        if(window == NULL) {
+            fatal_error("Window is not initialised", -1);
+        }
+    #endif
 }
 
 void init_window() {
@@ -50,5 +52,6 @@ void close_window() {
 }
 
 void free_window() {
+    check_window_initialised();
     free(window);
 }
