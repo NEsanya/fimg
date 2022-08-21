@@ -6,9 +6,15 @@
 #include <stdlib.h>
 #include <stdbool.h>
 
+typedef struct LayoutInfo {
+    KeyboardLayout* layout;
+    uint32_t size;
+} LayoutInfo;
+
 typedef struct Window {
     bool loop;
     WindowMode mode;
+    LayoutInfo layout_info;
     WINDOW* curses_window;
 } Window;
 
@@ -22,6 +28,20 @@ inline static void check_window_initialised() {
     #endif
 }
 
+static void set_layout_info() {
+    if(window->layout_info.layout != NULL) {
+        free(window->layout_info.layout);
+    }
+
+    LayoutInfo layout_info;
+    get_keyboard_layout(&layout_info.size, NULL);
+
+    layout_info.layout = (KeyboardLayout*)smalloc(sizeof(KeyboardLayout) * layout_info.size);
+    get_keyboard_layout(&layout_info.size, layout_info.layout);
+
+    window->layout_info = layout_info;
+}
+
 void init_window() {
     if(window != NULL) {
         fatal_error("Window is already initialised.", -1);
@@ -29,8 +49,9 @@ void init_window() {
     window = (Window*)smalloc(sizeof(Window));
     window->loop = true;
     window->mode = NAVIGATION_MODE;
-
     window->curses_window = initscr();
+    set_layout_info();
+
     nodelay(window->curses_window, TRUE);
     keypad(window->curses_window, TRUE);
     halfdelay(5);
@@ -39,21 +60,14 @@ void init_window() {
     while(window->loop) {
         int ch = getch();
 
-        uint32_t size;
-        get_keyboard_layout(&size, NULL);
-
-        KeyboardLayout* layout = (KeyboardLayout*)smalloc(sizeof(KeyboardLayout) * size);
-        get_keyboard_layout(&size, layout);
-
-        for(uint32_t i = 0; i < size; i++) {
-            if(layout[i].key == ch) {
-                layout[i].action();
+        for(uint32_t i = 0; i < window->layout_info.size; i++) {
+            if(window->layout_info.layout[i].key == ch) {
+                window->layout_info.layout[i].action();
                 break;
             }
         }
 
         refresh();
-        free(layout);
     }
 }
 
@@ -66,12 +80,15 @@ void close_window() {
 
 void free_window() {
     check_window_initialised();
+    free(window->layout_info.layout);
     free(window);
 }
 
 void change_window_mode(WindowMode mode) {
     check_window_initialised();
+
     window->mode = mode;
+    set_layout_info();
 }
 
 WindowMode get_window_mode() {
