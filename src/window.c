@@ -5,6 +5,7 @@
 #include <ncurses.h>
 #include <stdlib.h>
 #include <stdbool.h>
+#include <pthread.h>
 
 typedef struct Window {
     bool loop;
@@ -12,6 +13,16 @@ typedef struct Window {
 } Window;
 
 static Window window;
+
+static void* keyboard_parse_loop(void* data) {
+    int ch;
+    while(window.loop) {
+        ch = getch();
+        parse_key(ch);
+    }
+
+    return NULL;
+}
 
 void init_window() {
     window.loop = true;
@@ -24,12 +35,12 @@ void init_window() {
     halfdelay(5);
     set_escdelay(0);
     noecho();
+}
 
-    int ch;
-    while(window.loop) {
-        ch = getch();
-        parse_key(ch);
-    }
+void start_keyboard_loop() {
+    pthread_t pthread_id;
+    pthread_create(&pthread_id, NULL, keyboard_parse_loop, NULL);
+    pthread_join(pthread_id, NULL);
 }
 
 void close_window() {

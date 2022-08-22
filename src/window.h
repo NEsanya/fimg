@@ -7,6 +7,7 @@ typedef enum WindowMode {
 } WindowMode;
 
 void init_window();
+void start_keyboard_loop();
 void close_window();
 
 void change_window_mode(WindowMode mode);

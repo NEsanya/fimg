@@ -51,9 +51,7 @@ void parse_key(int key) {
         return;
     }
 
-    if(!parse_hotkeys(key)) {
-        printw("%d\n", key);
-    }
+    parse_hotkeys(key);
 
     refresh();
 }
