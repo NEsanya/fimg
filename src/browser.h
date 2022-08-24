@@ -3,10 +3,15 @@
 
 #include <limits.h>
 
+typedef struct FileInfo {
+    unsigned char type;
+    char name[NAME_MAX + 1];
+} FileInfo;
+
 typedef struct DirectoryStructure {
     char path[PATH_MAX];
-    char** files;
-    unsigned int files_count;
+    unsigned int file_count;
+    FileInfo* files;
 } DirectoryStructure;
 
 DirectoryStructure get_execution_structure();

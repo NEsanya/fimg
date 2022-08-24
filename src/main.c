@@ -7,8 +7,8 @@ int main() {
     init_window();
 
     DirectoryStructure structure = get_execution_structure();
-    for(int i = 0; i < structure.files_count; i++) {
-        printw("%s\n", structure.files[i]);
+    for(int i = 0; i < structure.file_count; i++) {
+        printw("%s\n", structure.files[i].name);
     }
 
     start_keyboard_loop();

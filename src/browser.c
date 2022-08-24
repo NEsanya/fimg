@@ -12,6 +12,43 @@ static inline void check_is_dir_opened(DIR* d) {
     }
 }
 
+#define STR_EQUAL(a, b) strcmp(a, b) == 0
+
+static unsigned int
+get_directory_count(char path[PATH_MAX]) {
+    DIR* dir_p = opendir(path);
+    struct dirent* dirent_p;
+
+    unsigned int count = 0;
+    while((dirent_p = readdir(dir_p)) != NULL) {
+        if(STR_EQUAL(dirent_p->d_name, ".")) {
+           continue;
+        }
+
+        count++;
+    }
+
+    closedir(dir_p);
+    return count;
+}
+
+static void write_directory_files(DirectoryStructure* structure) {
+    DIR* dir_p = opendir(structure->path);
+    struct dirent* dirent_p;
+
+    for(int i = 0; (dirent_p = readdir(dir_p)) != NULL; i++) {
+        if(STR_EQUAL(dirent_p->d_name, ".")) {
+            i--;
+            continue;
+        }
+
+        structure->files[i].type = dirent_p->d_type;
+        strcpy(structure->files[i].name, dirent_p->d_name);
+    }
+
+    closedir(dir_p);
+}
+
 DirectoryStructure get_execution_structure() {
     DirectoryStructure directory_structure;
 
@@ -20,37 +57,14 @@ DirectoryStructure get_execution_structure() {
         fatal_error("getcwd() error.", 1);
     }
 
-    DIR* d;
-    struct dirent* dir;
+    directory_structure.file_count = get_directory_count(cwd);
+    directory_structure.files = smalloc(sizeof(FileInfo) * directory_structure.file_count);
 
-    d = opendir(cwd);
-    check_is_dir_opened(d);
-
-    directory_structure.files_count = 0;
-    while((dir = readdir(d)) != NULL) {
-        directory_structure.files_count++;
-    }
-    closedir(d);
-
-    directory_structure.files =
-        (char**)
-        smalloc(sizeof(char*) * directory_structure.files_count);
-
-    d = opendir(cwd);
-    check_is_dir_opened(d);
-
-    for(unsigned int i = 0; (dir = readdir(d)) != NULL; i++) {
-        directory_structure.files[i] = (char*)smalloc(sizeof(dir->d_name));
-        strcpy(directory_structure.files[i], dir->d_name);
-    }
-    closedir(d);
+    write_directory_files(&directory_structure);
 
     return directory_structure;
 }
 
 void free_directory_structure(DirectoryStructure* structure) {
-    for(unsigned int i = 0; i < structure->files_count; i++) {
-        free(structure->files[i]);
-    }
-    free(structure->files);
+   free(structure->files);
 }
