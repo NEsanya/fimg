@@ -6,17 +6,19 @@
 #include <unistd.h>
 #include <dirent.h>
 
+#define STR_EQUAL(a, b) strcmp(a, b) == 0
+#define SIZE_OF_PATH sizeof(char) * PATH_MAX
+
 static inline void check_is_dir_opened(DIR* d) {
     if(!d) {
         fatal_error("Cannot open directory.", 1);
     }
 }
 
-#define STR_EQUAL(a, b) strcmp(a, b) == 0
-
 static unsigned int
 get_directory_count(char path[PATH_MAX]) {
     DIR* dir_p = opendir(path);
+    check_is_dir_opened(dir_p);
     struct dirent* dirent_p;
 
     unsigned int count = 0;
@@ -34,6 +36,7 @@ get_directory_count(char path[PATH_MAX]) {
 
 static void write_directory_files(DirectoryStructure* structure) {
     DIR* dir_p = opendir(structure->path);
+    check_is_dir_opened(dir_p);
     struct dirent* dirent_p;
 
     for(int i = 0; (dirent_p = readdir(dir_p)) != NULL; i++) {
@@ -49,15 +52,21 @@ static void write_directory_files(DirectoryStructure* structure) {
     closedir(dir_p);
 }
 
-DirectoryStructure get_execution_structure() {
-    DirectoryStructure directory_structure;
-
-    char* cwd = getcwd(directory_structure.path, sizeof(directory_structure.path));
+char* get_execution_path() {
+    char* path = smalloc(SIZE_OF_PATH);
+    char* cwd = getcwd(path, SIZE_OF_PATH);
     if(cwd == NULL) {
         fatal_error("getcwd() error.", 1);
     }
 
-    directory_structure.file_count = get_directory_count(cwd);
+    return path;
+}
+
+DirectoryStructure get_directory_structure(char* path) {
+    DirectoryStructure directory_structure;
+
+    strcpy(directory_structure.path, path);
+    directory_structure.file_count = get_directory_count(directory_structure.path);
     directory_structure.files = smalloc(sizeof(FileInfo) * directory_structure.file_count);
 
     write_directory_files(&directory_structure);

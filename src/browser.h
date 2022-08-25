@@ -14,7 +14,9 @@ typedef struct DirectoryStructure {
     FileInfo* files;
 } DirectoryStructure;
 
-DirectoryStructure get_execution_structure();
+char* get_execution_path();
+
+DirectoryStructure get_directory_structure(char* path);
 
 void free_directory_structure(DirectoryStructure* structure);
 
